@@ -21,7 +21,7 @@ Vamos realizando operaciones:
 ### Creación de base de datos
 Para crear la Base de datos que vamos a utilizar para esta actividad tenemos varias opciones:
 
-**OPCIÓN 1: De manera gráfica**
+**OPCIÓN 3: completamente de manera gráfica**
 - Accedemos via web al servicio de phpmyadmin que tenemos instalado: <http://localhost:8080>
 
 ![](images/sqli2.png)
@@ -29,9 +29,26 @@ Para crear la Base de datos que vamos a utilizar para esta actividad tenemos var
 - Creamos una base de datos nueva, pulsando el botón de _Nueva_
 
 ![](images/sqli3.png)
+
+- Vamos a llamar a la tabla SQLi
+
 ![](images/sqli4.png)
 
+- Una vez creada, inmediatamente nos sugiere que creemos una tabla nueva. La tabla que necesitamos se llamará **Usuarios* y debe de tener 3 columnas:**id, nombre y contrasenya**, cada una con su tipo de valor correspondiente.
 
+![](images/sqli6.png)
+
+- Una vez creada podemos introducir los valores de los usuarios que queramos pulsando en **Insertar**
+
+![](images/sqli7.png)
+- y introducimos los valores que queremos. 
+
+![](images/sqli8.png)
+ 
+
+![](images/sqli4.png)
+![](images/sqli4.png)
+![](images/sqli4.png)
 
 ---	
 ## ENTREGA
