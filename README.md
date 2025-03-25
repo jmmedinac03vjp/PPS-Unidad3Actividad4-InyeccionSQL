@@ -9,7 +9,13 @@ Tenemos como objetivo:
 >
 > Implementar diferentes modificaciones del codigo para aplicar mitigaciones o soluciones.
 
+# ¿Qué es SQL Injection (SQLi)?
 ---
+**SQL Injection (SQLi)**  es un tipo de ataque en el que un atacante inserta código SQL malicioso en una consulta a la base
+de datos, con el objetivo de manipular, robar o eliminar información sensible.
+Este ataque ocurre cuando una aplicación no valida correctamente la entrada del usuario y ejecuta consultas SQL
+dinámicas sin medidas de seguridad.
+
 ## ACTIVIDADES A REALIZAR
 > Lee el siguiente [documento sobre Explotación y Mitigación de ataques de Inyección SQL](files/ExplotacionYMitigacionSQLInjection.pdf) de Raúl Fuentes. Nos va a seguir de guía para aprender a explotar y mitigar ataques de inyección SQL en nuestro entorno de pruebas.
 > También y como marco de referencia, tienes [ la sección de correspondiente de inyección de SQL de la **Proyecto Web Security Testing Guide** (WSTG) del proyecto **OWASP**.](https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection)
