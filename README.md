@@ -166,11 +166,21 @@ $conn = new mysqli("database", "root", "password", "SQLi");
 ~~~
 Esta página nos muestra dos campos para que introduzcamos nuestro usuario y nuestra contraseña.
 
-Con los datos introducidos hace una consulta a la BBDD para ver si el usuario y contraseña introducido son correctos.
+![](images/sqli18.png)
+
+Podemos ver los datos de nuestros usuarios desde PHPMyAdmin en la siguientes dirección: <http://localhost:8080/index.php?route=/sql&pos=0&db=SQLi&table=usuarios>
+
+Como podemos ver en la imagen, el usuario **admin** tiene contraseña **admin123**.
+
+![](images/sqli26.png)
+
+Con los datos que hemos introducido en los campos de consulta, hace una consulta a la BBDD para ver si el usuario y contraseña introducido son correctos.
 
 Ya tendremos preparado nuestro servidor web para poder ver las vulnerabilidades de Inyección SQL. Accedemos desde `http://localhost/SQLi/login1.php`
 
-![](images/sqli18.png)
+Si introducimos el usuario **admin** y la contraseña **admin123** la consulta dice que es usuario y contraseña correcta y nos dejaría logearnos en la página.
+
+![](images/sqli25.png
 
 Como vemos, el problema se produce debido a que hacemos la consulta que hacemos a la base de datos es la siguiente:
 
@@ -218,25 +228,25 @@ Para realizar la explotación, en el campo "Usuario" ingresar:
 
 1. **Vulnerabilidad a inyección SQL**
 
-	o La consulta SQL inserta directamente los valores del usuario ('$username' AND password = '$password').
+	- La consulta SQL inserta directamente los valores del usuario ('$username' AND password = '$password').
 
-	o No se usan consultas preparadas.
+	- No se usan consultas preparadas.
 
 2. **Contraseñas almacenadas en texto plano**
 
-	o La base de datos parece almacenar las contraseñas en texto sin cifrar.
+	- La base de datos parece almacenar las contraseñas en texto sin cifrar.
 
-	o Esto es una mala práctica, ya que si la base de datos es comprometida, todas las contraseñas quedan expuestas.
+	- Esto es una mala práctica, ya que si la base de datos es comprometida, todas las contraseñas quedan expuestas.
 
 3. **Falta de validación y sanitización de entrada**
 
-	o No hay ningún tipo de limpieza en los valores obtenidos de $_POST, lo que facilita ataques como XSS o inyecciones maliciosas.
+	- No hay ningún tipo de limpieza en los valores obtenidos de $_POST, lo que facilita ataques como XSS o inyecciones maliciosas.
 
 4. **No se maneja la conexión a la base de datos adecuadamente**
 
-	o No se verifica si la conexión es exitosa.
+	- No se verifica si la conexión es exitosa.
 
-	o No se cierra la conexión después de ejecutar la consulta.
+	- No se cierra la conexión después de ejecutar la consulta.
 
 
 ## Mitigación de vulnerabiliad
@@ -299,6 +309,7 @@ El resultado es que ya no funciona la inyección SQL:
 
 ![](images/sqli24.png)
 
+
 **Mejoras en el segundo código (Más seguro, pero aún con problemas)**
 
 1. Uso de consultas preparadas.
@@ -348,33 +359,57 @@ VAmos a intentar incorporar esas mejoras:
 ~~~
 <?php
 $conn = new mysqli("database", "root", "password", "SQLi");
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-                $username = $_POST["username"];
-                $password = $_POST["password"];
-                $username = addslashes($username);
-                $password = addslashes($password);
-                $query= "SELECT * FROM usuarios WHERE usuario = '$username' AND contrasenya = '$password'";
-                echo "Consulta ejecutada: " . $query . "<br>";
-                $result = $conn->query($query);
-                if ($result) {
-                        if ($result->num_rows > 0) {
-                                echo "Inicio de sesión exitoso<br>";
-                                // Modificación: Mostrar datos extraídos de la consulta
-                                while ($row = $result->fetch_assoc()) {
-                                        echo "ID: " . $row['id'] . " - Usuario: " . $row['usuario'] . " -Contraseña: " . $row['contrasenya'] . "<br>";
-                                }
-                } else {
-                        echo "Usuario o contraseña incorrectos";
-                }
-        } else {
-                echo "Error en la consulta: " . $conn->error;
-        }
+
+// Verificar conexión
+if ($conn->connect_error) {
+    die("Error de conexión: " . $conn->connect_error);
 }
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = $_POST["username"] ?? '';
+    $password = $_POST["password"] ?? '';
+
+    // Verificar si los campos están vacíos
+    if (empty($username) || empty($password)) {
+        die("Error: Usuario y contraseña son obligatorios.");
+    }
+
+    // Consulta segura con prepared statements
+    $query = "SELECT id, usuario, contrasenya FROM usuarios WHERE usuario = ?";
+    $stmt = $conn->prepare($query);
+    
+    if (!$stmt) {
+        die("Error en la preparación de la consulta: " . $conn->error);
+    }
+
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        
+        // Verificar contraseña hasheada (suponiendo uso de password_hash())
+        if (password_verify($password, $row["contrasenya"])) {
+            echo "Inicio de sesión exitoso<br>";
+            echo "ID: " . htmlspecialchars($row['id']) . " - Usuario: " . htmlspecialchars($row['usuario']) . "<br>";
+        } else {
+            echo "Usuario o contraseña incorrectos";
+        }
+    } else {
+        echo "Usuario o contraseña incorrectos";
+    }
+
+    $stmt->close();
+}
+
+$conn->close();
 ?>
+
 <form method="post">
-        <input type="text" name="username" placeholder="Usuario">
-        <input type="password" name="password" placeholder="Contraseña">
-        <button type="submit">Iniciar Sesión</button>
+    <input type="text" name="username" placeholder="Usuario">
+    <input type="password" name="password" placeholder="Contraseña">
+    <button type="submit">Iniciar Sesión</button>
 </form>
 ~~~
 
