@@ -254,7 +254,7 @@ Nuestro login2.php debe de tener el siguiente contenido
 
 ~~~
 <?php
-$conn = new mysqli("database", "root", "josemi", "SQLi");
+$conn = new mysqli("database", "root", "password", "SQLi");
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $username = $_POST["username"];
                 $password = $_POST["password"];
@@ -286,11 +286,58 @@ $conn = new mysqli("database", "root", "josemi", "SQLi");
 
 ~~~
 Como vemos, podemos incluir consultas dentro de los campos, al utilizar caracteres especiales como las comillas.
+
 Por lo tanto la primera aproximación sería escapar esos caracteres especiales de los valores de la consulta.
+
 La función **addslashes()** nos permite hacerlo.
+
 Por lo tanto, modificamos el archivo anterior, introduciendo las lineas de escape de caracteres especiales tanto del campo de usuario como de la contraseña.
+
 ![](images/sqli19.png)
 
+El resultado es que ya no funciona la inyección SQL:
+
+![](images/sqli24.png)
+
+**Mejoras en el segundo código (Más seguro, pero aún con problemas)**
+
+1.Uso de consultas preparadas.
+
+	o Se usa $stmt->prepare() y bind_param(), lo que previene inyección SQL.
+
+	o Ventaja: No importa qué ingrese el usuario, la consulta tratará los valores como datos, no como código ejecutable.
+
+2. Se valida la conexión a la base de datos.
+
+	o Se verifica si connect_error devuelve un error antes de continuar.
+
+	o Si hay un fallo, el script termina con die(), lo que evita que se ejecuten consultas en una conexión fallida.
+
+3. Se limpia la entrada del usuario con trim().
+
+	o Se eliminan espacios en blanco al inicio y al final del username y password, evitando problemas con caracteres innecesarios.
+
+4. Manejo de la conexión a la base de datos.
+
+	o Se cierra la consulta ($stmt->close()) y la conexión ($conn->close()) correctamente.
+
+
+** Problemas que aún tiene el segundo código** 
+
+1. Las contraseñas siguen almacenándose en texto plano.
+
+	o Aunque se evita la inyección SQL, el código sigue comparando contraseñas directamente en la base de datos.
+
+	o Solución correcta: Almacenar las contraseñas con password_hash() y verificar con password_verify().
+
+2. Mensajes de error genéricos
+
+	o Se sigue mostrando información detallada sobre los usuarios si la consulta es exitosa.
+
+	o Lo correcto sería iniciar una sesión en lugar de mostrar información del usuario.
+3. No hay control de sesiones
+
+	o A pesar de corregir varios problemas de seguridad, no se establece una sesión segura (session_start()) después de una autenticación exitosa.
 ### 
 ![](images/sqli4.png)
 ![](images/sqli4.png)
