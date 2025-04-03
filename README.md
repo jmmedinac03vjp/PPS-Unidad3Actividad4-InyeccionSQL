@@ -319,7 +319,7 @@ El resultado es que ya no funciona la inyección SQL:
 
 4. Manejo de la conexión a la base de datos.
 
-	- Se cierra la consulta ($stmt->close()) y la conexión ($conn->close()) correctamente.
+	- Se cierra la consulta (**$stmt->close()**) y la conexión (**$conn->close()**) correctamente.
 
 
 ** Problemas que aún tiene el segundo código** 
@@ -328,7 +328,7 @@ El resultado es que ya no funciona la inyección SQL:
 
 	- Aunque se evita la inyección SQL, el código sigue comparando contraseñas directamente en la base de datos.
 
-	- Solución correcta: Almacenar las contraseñas con password\_hash() y verificar con password\_verify().
+	- Solución correcta: Almacenar las contraseñas con **password\_hash()** y verificar con **password\_verify()**.
 
 2. Mensajes de error genéricos
 
@@ -380,36 +380,38 @@ $conn = new mysqli("database", "root", "password", "SQLi");
 
 **Mejoras implementadas**
 ---
-1. Uso de consultas preparadas (prepare() y bind_param()) para evitar SQL Injection.
+1. Uso de consultas preparadas (**prepare()** y **bind_param()**) para evitar SQL Injection.
 
-2. Eliminación de addslashes(), ya que no es una defensa efectiva contra SQLi.
+2. Eliminación de **addslashes()**, ya que no es una defensa efectiva contra SQLi.
 
-3. Hash de contraseñas con password_hash() y verificación con password_verify() (requiere modificar la base de datos si las contraseñas no están hasheadas).
+3. Hash de contraseñas con **password_hash()** y verificación con **password_verify()** (requiere modificar la base de datos si las contraseñas no están hasheadas).
 
-4. Escape en la salida con htmlspecialchars() para evitar posibles XSS al mostrar datos.
+4. Escape en la salida con **htmlspecialchars()** para evitar posibles XSS al mostrar datos.
 
-5. Cierre adecuado de la conexión con $conn->close(). 
+5. Cierre adecuado de la conexión con **$conn->close()**. 
 
 **Explicación de las mejoras**
 ---
-✅ Consultas preparadas: prepare() y bind_param() protegen contra SQL Injection.
+✅ Consultas preparadas: **prepare()** y **bind_param()** protegen contra SQL Injection.
 
 ✅ Eliminación de addslashes(): No es necesario con consultas preparadas.
 
-✅ Uso de password_hash() y password_verify(): Si las contraseñas en la base de datos no están hasheadas, hay que actualizarlas con password_hash().
+✅ Uso de **password_hash()** y **password_verify()**: Si las contraseñas en la base de datos no están hasheadas, hay que actualizarlas con password_hash().
 
-✅ Escapado de salida con htmlspecialchars(): Evita XSS en los datos mostrados.
+✅ Escapado de salida con **htmlspecialchars()**: Evita XSS en los datos mostrados.
 
 
-** Posible mejora: Guardar las contraseñas en BBDD con la función `password_hash()`:
+**Posible mejora:**
+---
+ Guardar las contraseñas en BBDD con la función **password_hash()**:
 
-Si las contraseñas aún no están almacenadas con password_hash(), a la hora de guardar las contraseñas en la BBDD, en PHP necesitarás guardarlas con algo como:
+Si las contraseñas aún no están almacenadas con **password_hash()**, a la hora de guardar las contraseñas en la BBDD, en PHP necesitarás guardarlas con algo como:
 
 ~~~
 $hashed_password = password_hash("tu_contraseña", PASSWORD_DEFAULT);
 ~~~
 
-A la hora de leerla usaríamos la función:  `password_verify()`	
+A la hora de leerla usaríamos la función:  **password_verify()**	
 
 ---
 
