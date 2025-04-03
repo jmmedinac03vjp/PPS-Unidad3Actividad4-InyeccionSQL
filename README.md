@@ -45,6 +45,7 @@ Para crear la Base de datos que vamos a utilizar para esta actividad tenemos var
 
 
 **OPCIÓN 1: Desde terminal**
+---
 
 Recordamos que nuestra base de datos se encuentra, en mi caso, en el contenedor _lamp-mysql18_, por lo que tenemos que conectarnos al servidor de MySQL que se encuentra en dicha máquina:
 
@@ -80,6 +81,7 @@ Vemos como se ha creado correctamente, tanto Base de Datos, como tabla y usuario
 
 
 **OPCIÓN 2: a través de PHPmyAdmin**
+---
 
 - Accedemos via web al servicio de phpmyadmin que tenemos instalado: <http://localhost:8080>
 
@@ -93,6 +95,7 @@ Vemos como se ha creado correctamente, tanto Base de Datos, como tabla y usuario
 
 
 **OPCIÓN 3: completamente de manera gráfica**
+---
 
 - Accedemos via web al servicio de phpmyadmin que tenemos instalado: <http://localhost:8080>
 
