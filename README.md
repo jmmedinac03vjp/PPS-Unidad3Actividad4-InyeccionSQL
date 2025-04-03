@@ -9,11 +9,13 @@ Tenemos como objetivo:
 >
 > - Implementar diferentes modificaciones del codigo para aplicar mitigaciones o soluciones.
 
+
 # ¿Qué es SQL Injection (SQLi)?
 ---
 **SQL Injection (SQLi)**  es un tipo de ataque en el que un atacante inserta código SQL malicioso en una consulta a la base de datos, con el objetivo de manipular, robar o eliminar información sensible.
 
 Este ataque ocurre cuando una aplicación no valida correctamente la entrada del usuario y ejecuta consultas SQL dinámicas sin medidas de seguridad.
+
 
 ## ACTIVIDADES A REALIZAR
 
@@ -25,6 +27,7 @@ Este ataque ocurre cuando una aplicación no valida correctamente la entrada del
 
 Vamos realizando operaciones:
 
+
 ### Iniciar entorno de pruebas
 
 -Situáte en la carpeta de del entorno de pruebas de nuestro servidor LAMP e inicia el escenario multicontenedor: 
@@ -35,9 +38,11 @@ docker-compose up -d
 
 ![](images/sqli1.png)
 
+
 ### Creación de base de datos
 
 Para crear la Base de datos que vamos a utilizar para esta actividad tenemos varias opciones:
+
 
 **OPCIÓN 1: Desde terminal**
 
@@ -73,6 +78,7 @@ Vemos como se ha creado correctamente, tanto Base de Datos, como tabla y usuario
 
 ![](images/sqli10.png)
 
+
 **OPCIÓN 2: a través de PHPmyAdmin**
 
 - Accedemos via web al servicio de phpmyadmin que tenemos instalado: <http://localhost:8080>
@@ -84,6 +90,7 @@ Vemos como se ha creado correctamente, tanto Base de Datos, como tabla y usuario
 - Por lo tanto, tan sólo tenemos que introducir las sentencias SQL del apartado anterior.
 
 ![](images/sqli16.png)
+
 
 **OPCIÓN 3: completamente de manera gráfica**
 
@@ -110,6 +117,7 @@ Vemos como se ha creado correctamente, tanto Base de Datos, como tabla y usuario
 - e introducimos los valores que queremos. 
 
 ![](images/sqli8.png)
+
  
 ### Crear página web en Apache
 
@@ -164,13 +172,119 @@ Ya tendremos preparado nuestro servidor web para poder ver las vulnerabilidades 
 
 ![](images/sqli18.png)
 
-Cómo ve
+Como vemos, el problema se produce debido a que hacemos la consulta que hacemos a la base de datos es la siguiente:
+
+`$query = "SELECT * FROM usuarios WHERE usuario = '$username' AND contrasenya = '$password'"`
+
+Estamos construyendo la consulta directamenbte con lo escrito en los campos de usuario y contraseña. Podemos cambiar el sentido de la consulta si utilizamos las comillas simples "'".
+
+
+
+## Explotación de Inyección SQL
+
+Podemos inyectar infinidad de código. Entre ello, podemos hacer ataques de:
+
+
+**Bypass de autenticación**
+
+Para realizar la explotación, en el campo "Usuario" ingresar:
+
+~~~
+' OR '1'='1' #
+~~~
+
+![](images/sqli20.png)
+
+> Resultado esperado: Inicia sesión sin credenciales válidas.
+
+![](images/sqli21.png)
+
+
+**Obtener credenciales de la base de datos**
+
+Para realizar la explotación, en el campo "Usuario" ingresar:
+
+~~~
+' UNION SELECT NULL, usuario, contrasenya FROM usuarios #
+~~~
+
+> Resultado esperado: Se muestran todos los usuarios y contraseñas.
+
+![](images/sqli22.png)
+
+
+**Problemas del primer código (Inseguro)**
+---
+
+1. **Vulnerabilidad a inyección SQL**
+
+	o La consulta SQL inserta directamente los valores del usuario ('$username' AND password = '$password').
+
+	o No se usan consultas preparadas.
+
+2. **Contraseñas almacenadas en texto plano**
+
+	o La base de datos parece almacenar las contraseñas en texto sin cifrar.
+
+	o Esto es una mala práctica, ya que si la base de datos es comprometida, todas las contraseñas quedan expuestas.
+
+3. **Falta de validación y sanitización de entrada**
+
+	o No hay ningún tipo de limpieza en los valores obtenidos de $_POST, lo que facilita ataques como XSS o inyecciones maliciosas.
+
+4. **No se maneja la conexión a la base de datos adecuadamente**
+
+	o No se verifica si la conexión es exitosa.
+
+	o No se cierra la conexión después de ejecutar la consulta.
+
+
 ## Mitigación de vulnerabiliad
 
-Para ir incorporando soluciones, sin eliminar las anteriores versiones, vamos a crear a partir del archivo anterior, otro en el que modificar cosas para ir aproximádonos a la mejor solución: `cp login1.php login2.php` 
+Para ir incorporando soluciones, sin eliminar las anteriores versiones, vamos a crear a partir del archivo anterior, otro en el que modificar cosas para ir aproximádonos a la mejor solución:
+ 
+~~~
+cp login1.php login2.php 
+~~~
+
 
 ### Primera mitigación, escapar los caracteres especiales.
 
+Nuestro login2.php debe de tener el siguiente contenido
+
+~~~
+<?php
+$conn = new mysqli("database", "root", "josemi", "SQLi");
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+                $username = $_POST["username"];
+                $password = $_POST["password"];
+                $username = addslashes($username);
+                $password = addslashes($password);
+                $query= "SELECT * FROM usuarios WHERE usuario = '$username' AND contrasenya = '$password'";
+                echo "Consulta ejecutada: " . $query . "<br>";
+                $result = $conn->query($query);
+                if ($result) {
+                        if ($result->num_rows > 0) {
+                                echo "Inicio de sesión exitoso<br>";
+                                // Modificación: Mostrar datos extraídos de la consulta
+                                while ($row = $result->fetch_assoc()) {
+                                        echo "ID: " . $row['id'] . " - Usuario: " . $row['usuario'] . " -Contraseña: " . $row['contrasenya'] . "<br>";
+                                }
+                } else {
+                        echo "Usuario o contraseña incorrectos";
+                }
+        } else {
+                echo "Error en la consulta: " . $conn->error;
+        }
+}
+?>
+<form method="post">
+        <input type="text" name="username" placeholder="Usuario">
+        <input type="password" name="password" placeholder="Contraseña">
+        <button type="submit">Iniciar Sesión</button>
+</form>
+
+~~~
 Como vemos, podemos incluir consultas dentro de los campos, al utilizar caracteres especiales como las comillas.
 Por lo tanto la primera aproximación sería escapar esos caracteres especiales de los valores de la consulta.
 La función **addslashes()** nos permite hacerlo.
@@ -178,7 +292,6 @@ Por lo tanto, modificamos el archivo anterior, introduciendo las lineas de escap
 ![](images/sqli19.png)
 
 ### 
-![](images/sqli4.png)
 ![](images/sqli4.png)
 ![](images/sqli4.png)
 ![](images/sqli4.png)
