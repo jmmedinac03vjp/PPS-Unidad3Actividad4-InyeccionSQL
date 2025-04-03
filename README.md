@@ -355,7 +355,7 @@ El resultado es que ya no funciona la inyección SQL:
 	- A pesar de corregir varios problemas de seguridad, no se establece una sesión segura (session_start()) después de una autenticación exitosa.
 
 
-## Código mejorado
+## Código mejorado uso consultas parametrizadas
 
 VAmos a intentar incorporar esas mejoras:
 
@@ -416,17 +416,6 @@ $conn->close();
 </form>
 ~~~
 
-**Mejoras implementadas**
----
-1. Uso de consultas preparadas (**prepare()** y **bind_param()**) para evitar SQL Injection.
-
-2. Eliminación de **addslashes()**, ya que no es una defensa efectiva contra SQLi.
-
-3. Hash de contraseñas con **password_hash()** y verificación con **password_verify()** (requiere modificar la base de datos si las contraseñas no están hasheadas).
-
-4. Escape en la salida con **htmlspecialchars()** para evitar posibles XSS al mostrar datos.
-
-5. Cierre adecuado de la conexión con **$conn->close()**. 
 
 **Explicación de las mejoras**
 ---
@@ -434,13 +423,10 @@ $conn->close();
 
 ✅ Eliminación de addslashes(): No es necesario con consultas preparadas.
 
-✅ Uso de **password_hash()** y **password_verify()**: Si las contraseñas en la base de datos no están hasheadas, hay que actualizarlas con password_hash().
-
 ✅ Escapado de salida con **htmlspecialchars()**: Evita XSS en los datos mostrados.
 
+✅ Uso de **password_hash()** y **password_verify()**: Si las contraseñas en la base de datos no están hasheadas, hay que actualizarlas con password_hash().
 
-**Posible mejora:**
----
  Guardar las contraseñas en BBDD con la función **password_hash()**:
 
 Si las contraseñas aún no están almacenadas con **password_hash()**, a la hora de guardar las contraseñas en la BBDD, en PHP necesitarás guardarlas con algo como:
@@ -450,8 +436,6 @@ $hashed_password = password_hash("tu_contraseña", PASSWORD_DEFAULT);
 ~~~
 
 A la hora de leerla usaríamos la función:  **password_verify()**	
-
----
 
 
 ## ENTREGA
