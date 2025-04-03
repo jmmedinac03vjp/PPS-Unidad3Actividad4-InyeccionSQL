@@ -301,57 +301,124 @@ El resultado es que ya no funciona la inyección SQL:
 
 **Mejoras en el segundo código (Más seguro, pero aún con problemas)**
 
-1.Uso de consultas preparadas.
+1. Uso de consultas preparadas.
 
-	o Se usa $stmt->prepare() y bind_param(), lo que previene inyección SQL.
+	- Se usa $stmt->prepare() y bind_param(), lo que previene inyección SQL.
 
-	o Ventaja: No importa qué ingrese el usuario, la consulta tratará los valores como datos, no como código ejecutable.
+	- Ventaja: No importa qué ingrese el usuario, la consulta tratará los valores como datos, no como código ejecutable.
 
 2. Se valida la conexión a la base de datos.
 
-	o Se verifica si connect_error devuelve un error antes de continuar.
+	- Se verifica si connect_error devuelve un error antes de continuar.
 
-	o Si hay un fallo, el script termina con die(), lo que evita que se ejecuten consultas en una conexión fallida.
+	- Si hay un fallo, el script termina con die(), lo que evita que se ejecuten consultas en una conexión fallida.
 
 3. Se limpia la entrada del usuario con trim().
 
-	o Se eliminan espacios en blanco al inicio y al final del username y password, evitando problemas con caracteres innecesarios.
+	- Se eliminan espacios en blanco al inicio y al final del username y password, evitando problemas con caracteres innecesarios.
 
 4. Manejo de la conexión a la base de datos.
 
-	o Se cierra la consulta ($stmt->close()) y la conexión ($conn->close()) correctamente.
+	- Se cierra la consulta ($stmt->close()) y la conexión ($conn->close()) correctamente.
 
 
 ** Problemas que aún tiene el segundo código** 
 
 1. Las contraseñas siguen almacenándose en texto plano.
 
-	o Aunque se evita la inyección SQL, el código sigue comparando contraseñas directamente en la base de datos.
+	- Aunque se evita la inyección SQL, el código sigue comparando contraseñas directamente en la base de datos.
 
-	o Solución correcta: Almacenar las contraseñas con password_hash() y verificar con password_verify().
+	- Solución correcta: Almacenar las contraseñas con password\_hash() y verificar con password\_verify().
 
 2. Mensajes de error genéricos
 
-	o Se sigue mostrando información detallada sobre los usuarios si la consulta es exitosa.
+	- Se sigue mostrando información detallada sobre los usuarios si la consulta es exitosa.
 
-	o Lo correcto sería iniciar una sesión en lugar de mostrar información del usuario.
+	- Lo correcto sería iniciar una sesión en lugar de mostrar información del usuario.
+
 3. No hay control de sesiones
 
-	o A pesar de corregir varios problemas de seguridad, no se establece una sesión segura (session_start()) después de una autenticación exitosa.
-### 
-![](images/sqli4.png)
-![](images/sqli4.png)
-![](images/sqli4.png)
-![](images/sqli4.png)
-![](images/sqli4.png)
-![](images/sqli4.png)
+	- A pesar de corregir varios problemas de seguridad, no se establece una sesión segura (session_start()) después de una autenticación exitosa.
 
----	
+
+## Código mejorado
+
+VAmos a intentar incorporar esas mejoras:
+
+~~~
+<?php
+$conn = new mysqli("database", "root", "password", "SQLi");
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+                $username = $_POST["username"];
+                $password = $_POST["password"];
+                $username = addslashes($username);
+                $password = addslashes($password);
+                $query= "SELECT * FROM usuarios WHERE usuario = '$username' AND contrasenya = '$password'";
+                echo "Consulta ejecutada: " . $query . "<br>";
+                $result = $conn->query($query);
+                if ($result) {
+                        if ($result->num_rows > 0) {
+                                echo "Inicio de sesión exitoso<br>";
+                                // Modificación: Mostrar datos extraídos de la consulta
+                                while ($row = $result->fetch_assoc()) {
+                                        echo "ID: " . $row['id'] . " - Usuario: " . $row['usuario'] . " -Contraseña: " . $row['contrasenya'] . "<br>";
+                                }
+                } else {
+                        echo "Usuario o contraseña incorrectos";
+                }
+        } else {
+                echo "Error en la consulta: " . $conn->error;
+        }
+}
+?>
+<form method="post">
+        <input type="text" name="username" placeholder="Usuario">
+        <input type="password" name="password" placeholder="Contraseña">
+        <button type="submit">Iniciar Sesión</button>
+</form>
+~~~
+
+**Mejoras implementadas**
+---
+1. Uso de consultas preparadas (prepare() y bind_param()) para evitar SQL Injection.
+
+2. Eliminación de addslashes(), ya que no es una defensa efectiva contra SQLi.
+
+3. Hash de contraseñas con password_hash() y verificación con password_verify() (requiere modificar la base de datos si las contraseñas no están hasheadas).
+
+4. Escape en la salida con htmlspecialchars() para evitar posibles XSS al mostrar datos.
+
+5. Cierre adecuado de la conexión con $conn->close(). 
+
+**Explicación de las mejoras**
+---
+✅ Consultas preparadas: prepare() y bind_param() protegen contra SQL Injection.
+
+✅ Eliminación de addslashes(): No es necesario con consultas preparadas.
+
+✅ Uso de password_hash() y password_verify(): Si las contraseñas en la base de datos no están hasheadas, hay que actualizarlas con password_hash().
+
+✅ Escapado de salida con htmlspecialchars(): Evita XSS en los datos mostrados.
+
+
+** Posible mejora: Guardar las contraseñas en BBDD con la función `password_hash()`:
+
+Si las contraseñas aún no están almacenadas con password_hash(), a la hora de guardar las contraseñas en la BBDD, en PHP necesitarás guardarlas con algo como:
+
+~~~
+$hashed_password = password_hash("tu_contraseña", PASSWORD_DEFAULT);
+~~~
+
+A la hora de leerla usaríamos la función:  `password_verify()`	
+
+---
+
+
 ## ENTREGA
-
+---
 >__Realiza las operaciones indicadas__
 
->__Crea un repositorio  con nombre PPS-Unidad3Actividad3-Tu-Nombre donde documentes la realización de ellos.__
+>__Crea un repositorio  con nombre PPS-Unidad3Actividad4-Tu-Nombre donde documentes la realización de ellos.__
 
 > No te olvides de documentarlo convenientemente con explicaciones, capturas de pantalla, etc.
 
