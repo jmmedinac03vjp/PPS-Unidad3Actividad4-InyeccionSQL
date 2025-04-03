@@ -180,7 +180,7 @@ Ya tendremos preparado nuestro servidor web para poder ver las vulnerabilidades 
 
 Si introducimos el usuario **admin** y la contraseña **admin123** la consulta dice que es usuario y contraseña correcta y nos dejaría logearnos en la página.
 
-![](images/sqli25.png
+![](images/sqli25.png)
 
 Como vemos, el problema se produce debido a que hacemos la consulta que hacemos a la base de datos es la siguiente:
 
