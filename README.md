@@ -303,7 +303,7 @@ Como vemos, podemos incluir consultas dentro de los campos, al utilizar caracter
 
 Por lo tanto la primera aproximación sería escapar esos caracteres especiales de los valores de la consulta.
 
-La función **addslashes()** nos permite hacerlo.
+La función **addslashes()** nos permite hacerlo, ya que Devuelve una cadena con barras invertidas delante de los caracteres que necesitan escaparse en situaciones como consultas de bases de datos, etc. Los caracteres que se escapan son la comilla simple ('), comilla doble ("), barra invertida (\) y NUL (el byte NULL).
 
 Por lo tanto, modificamos el archivo anterior, introduciendo las lineas de escape de caracteres especiales tanto del campo de usuario como de la contraseña.
 
