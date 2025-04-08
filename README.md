@@ -328,16 +328,14 @@ El resultado es que ya no funciona la inyección SQL:
 
 	- Si hay un fallo, el script termina con die(), lo que evita que se ejecuten consultas en una conexión fallida.
 
-3. Se limpia la entrada del usuario con trim().
-
-	- Se eliminan espacios en blanco al inicio y al final del username y password, evitando problemas con caracteres innecesarios.
+3. Se escapan los caracteres especiales con la función **addslashes()**.
 
 4. Manejo de la conexión a la base de datos.
 
 	- Se cierra la consulta (**$stmt->close()**) y la conexión (**$conn->close()**) correctamente.
 
 
-** Problemas que aún tiene el segundo código** 
+**Problemas que aún tiene el segundo código** 
 
 1. Las contraseñas siguen almacenándose en texto plano.
 
