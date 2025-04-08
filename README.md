@@ -51,13 +51,13 @@ Para crear la Base de datos que vamos a utilizar para esta actividad tenemos var
 Recordamos que nuestra base de datos se encuentra, en mi caso, en el contenedor _lamp-mysql18_, por lo que tenemos que conectarnos al servidor de MySQL que se encuentra en dicha máquina:
 
 ~~~
-docker exec -it  lamp-mysql8  /bin/bash`
+docker exec -it  lamp-mysql8  /bin/bash
 ~~~
 
 Una vez dentro nos conectamos con la base de datos:
 
 ~~~
-mysql -u root -p`
+mysql -u root -p
 ~~~
 Puedes ver el proceso en a siguiente imagen:
 
@@ -204,7 +204,7 @@ Podemos inyectar infinidad de código. Entre ello, podemos hacer ataques de:
 Para realizar la explotación, en el campo "Usuario" ingresar:
 
 ~~~
-' OR '1'='1' #
+' OR '1'='1' -- -
 ~~~
 
 ![](images/sqli20.png)
